@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -84,6 +84,56 @@ describe('App', () => {
       screen.getByRole('heading', { name: 'In Progress' }),
     ).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Done' })).toBeInTheDocument();
+  });
+
+  it('adds a card with a validated title', async () => {
+    const user = userEvent.setup();
+    persistState(createSavedState());
+    render(<App />);
+    const todoColumn = screen.getByRole('region', { name: 'To Do' });
+
+    await user.click(
+      within(todoColumn).getByRole('button', { name: 'Add card' }),
+    );
+    await user.type(
+      within(todoColumn).getByRole('textbox', {
+        name: 'Card title for To Do',
+      }),
+      'Plan the week',
+    );
+    await user.click(
+      within(todoColumn).getByRole('button', { name: 'Add card' }),
+    );
+
+    expect(
+      within(todoColumn).getByRole('heading', { name: 'Plan the week' }),
+    ).toBeInTheDocument();
+  });
+
+  it('blocks a whitespace-only card title with an inline error', async () => {
+    const user = userEvent.setup();
+    persistState(createSavedState());
+    render(<App />);
+    const todoColumn = screen.getByRole('region', { name: 'To Do' });
+
+    await user.click(
+      within(todoColumn).getByRole('button', { name: 'Add card' }),
+    );
+    await user.type(
+      within(todoColumn).getByRole('textbox', {
+        name: 'Card title for To Do',
+      }),
+      '   ',
+    );
+    await user.click(
+      within(todoColumn).getByRole('button', { name: 'Add card' }),
+    );
+
+    expect(within(todoColumn).getByText('Enter a title.')).toBeInTheDocument();
+    expect(within(todoColumn).getByRole('textbox')).toHaveAttribute(
+      'aria-invalid',
+      'true',
+    );
   });
 
   it('keeps corrupt data until the user starts fresh', async () => {

@@ -1,5 +1,9 @@
 import { useBoardState } from '../../hooks/useBoardState';
-import { selectActiveBoard } from '../../state/selectors';
+import {
+  selectActiveBoard,
+  selectCardsForColumn,
+  selectColumnsForBoard,
+} from '../../state/selectors';
 import { Column } from '../column/Column';
 import { EmptyState } from '../common/EmptyState';
 
@@ -17,6 +21,7 @@ export function BoardView() {
   }
 
   const headingId = `board-${board.id}-heading`;
+  const columns = selectColumnsForBoard(state, board.id);
 
   return (
     <section aria-labelledby={headingId} className="mx-auto max-w-screen-2xl">
@@ -24,21 +29,13 @@ export function BoardView() {
         {board.title}
       </h2>
       <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-3">
-        {board.columnOrder.map((columnId) => {
-          const column = board.columns[columnId];
-
-          if (!column) {
-            return null;
-          }
-
+        {columns.map((column) => {
           return (
             <Column
               key={column.id}
+              boardId={board.id}
               column={column}
-              cards={column.cardIds.flatMap((cardId) => {
-                const card = board.cards[cardId];
-                return card ? [card] : [];
-              })}
+              cards={selectCardsForColumn(state, board.id, column.id)}
             />
           );
         })}

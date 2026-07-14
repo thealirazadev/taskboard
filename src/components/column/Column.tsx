@@ -1,12 +1,14 @@
 import { Card } from '../card/Card';
+import { AddCardForm } from './AddCardForm';
 import type { Card as CardData, Column as ColumnData } from '../../types/board';
 
 interface ColumnProps {
+  boardId: string;
   column: ColumnData;
   cards: CardData[];
 }
 
-export function Column({ column, cards }: ColumnProps) {
+export function Column({ boardId, column, cards }: ColumnProps) {
   const headingId = `column-${column.id}-heading`;
   const cardLabel = cards.length === 1 ? '1 card' : `${cards.length} cards`;
 
@@ -27,12 +29,23 @@ export function Column({ column, cards }: ColumnProps) {
         </span>
       </header>
       <ul aria-label={`${column.title} cards`} className="space-y-2">
-        {cards.map((card) => (
-          <li key={card.id}>
-            <Card card={card} />
+        {cards.length === 0 ? (
+          <li className="rounded-md border border-dashed border-border px-3 py-6 text-center text-sm text-muted">
+            No cards. Add one below.
           </li>
-        ))}
+        ) : (
+          cards.map((card) => (
+            <li key={card.id}>
+              <Card card={card} />
+            </li>
+          ))
+        )}
       </ul>
+      <AddCardForm
+        boardId={boardId}
+        columnId={column.id}
+        columnTitle={column.title}
+      />
     </section>
   );
 }

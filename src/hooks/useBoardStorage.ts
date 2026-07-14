@@ -31,6 +31,7 @@ export interface BoardStorageValue {
   dispatch: Dispatch<BoardAction>;
   notice: BoardNotice | null;
   dismissNotice: () => void;
+  showError: (message: string) => void;
   resetStorage: () => void;
 }
 
@@ -139,6 +140,14 @@ export function useBoardStorage(): BoardStorageValue {
     );
   }, []);
 
+  const showError = useCallback((message: string) => {
+    setNotice({
+      message,
+      canReset: false,
+      isDismissible: true,
+    });
+  }, []);
+
   const resetStorage = useCallback(() => {
     const result = clearPersistedState();
     if (!result.ok) {
@@ -160,5 +169,12 @@ export function useBoardStorage(): BoardStorageValue {
     setNotice(null);
   }, []);
 
-  return { state, dispatch, notice, dismissNotice, resetStorage };
+  return {
+    state,
+    dispatch,
+    notice,
+    dismissNotice,
+    showError,
+    resetStorage,
+  };
 }
