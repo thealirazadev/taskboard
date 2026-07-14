@@ -12,4 +12,11 @@ export type BoardAction =
       description: string;
       updatedAt: number;
     }
-  | { type: 'DELETE_CARD'; boardId: string; cardId: string; updatedAt: number };
+  | { type: 'DELETE_CARD'; boardId: string; cardId: string; updatedAt: number }
+  | {
+      type: 'RENAME_COLUMN';
+      boardId: string;
+      columnId: string;
+      title: string;
+      updatedAt: number;
+    };

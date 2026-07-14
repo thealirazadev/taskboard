@@ -244,4 +244,88 @@ describe('boardReducer', () => {
       }),
     ).toBe(state);
   });
+
+  it('renames a column without mutating the previous state', () => {
+    const state: PersistedState = {
+      version: 1,
+      boardOrder: ['board-1'],
+      activeBoardId: 'board-1',
+      boards: {
+        'board-1': {
+          id: 'board-1',
+          title: 'Board',
+          columnOrder: ['column-1'],
+          columns: {
+            'column-1': { id: 'column-1', title: 'To Do', cardIds: [] },
+          },
+          cards: {},
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+    };
+
+    const nextState = boardReducer(state, {
+      type: 'RENAME_COLUMN',
+      boardId: 'board-1',
+      columnId: 'column-1',
+      title: '  Doing  ',
+      updatedAt: 2,
+    });
+
+    expect(nextState.boards['board-1']?.columns['column-1']?.title).toBe(
+      'Doing',
+    );
+    expect(nextState.boards['board-1']?.updatedAt).toBe(2);
+    expect(state.boards['board-1']?.columns['column-1']?.title).toBe('To Do');
+  });
+
+  it('ignores invalid or no-op column renames', () => {
+    const state: PersistedState = {
+      version: 1,
+      boardOrder: ['board-1'],
+      activeBoardId: 'board-1',
+      boards: {
+        'board-1': {
+          id: 'board-1',
+          title: 'Board',
+          columnOrder: ['column-1'],
+          columns: {
+            'column-1': { id: 'column-1', title: 'To Do', cardIds: [] },
+          },
+          cards: {},
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+    };
+
+    expect(
+      boardReducer(state, {
+        type: 'RENAME_COLUMN',
+        boardId: 'board-1',
+        columnId: 'column-1',
+        title: '   ',
+        updatedAt: 2,
+      }),
+    ).toBe(state);
+    expect(
+      boardReducer(state, {
+        type: 'RENAME_COLUMN',
+        boardId: 'board-1',
+        columnId: 'column-1',
+        title: 'To Do',
+        updatedAt: 2,
+      }),
+    ).toBe(state);
+    expect(
+      boardReducer(state, {
+        type: 'RENAME_COLUMN',
+        boardId: 'board-1',
+        columnId: 'missing',
+        title: 'Doing',
+        updatedAt: 2,
+      }),
+    ).toBe(state);
+  });
 });

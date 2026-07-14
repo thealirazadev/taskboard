@@ -236,6 +236,60 @@ describe('App', () => {
     expect(deleteButton).toHaveFocus();
   });
 
+  it('renames a column and returns focus to its heading', async () => {
+    const user = userEvent.setup();
+    persistState(createSavedState());
+    render(<App />);
+
+    await user.click(
+      screen.getByRole('button', { name: 'Rename column To Do' }),
+    );
+    const nameInput = screen.getByRole('textbox', { name: 'Column name' });
+    await user.clear(nameInput);
+    await user.type(nameInput, 'Backlog');
+    await user.click(screen.getByRole('button', { name: 'Save name' }));
+
+    expect(
+      screen.getByRole('heading', { name: 'Backlog' }),
+    ).toHaveFocus();
+    expect(
+      screen.queryByRole('heading', { name: 'To Do' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('blocks a whitespace-only column rename with an inline error', async () => {
+    const user = userEvent.setup();
+    persistState(createSavedState());
+    render(<App />);
+
+    await user.click(
+      screen.getByRole('button', { name: 'Rename column To Do' }),
+    );
+    const nameInput = screen.getByRole('textbox', { name: 'Column name' });
+    await user.clear(nameInput);
+    await user.type(nameInput, '   ');
+    await user.click(screen.getByRole('button', { name: 'Save name' }));
+
+    expect(screen.getByText('Enter a title.')).toBeInTheDocument();
+    expect(nameInput).toHaveAttribute('aria-invalid', 'true');
+  });
+
+  it('cancels a column rename without saving changes', async () => {
+    const user = userEvent.setup();
+    persistState(createSavedState());
+    render(<App />);
+
+    await user.click(
+      screen.getByRole('button', { name: 'Rename column To Do' }),
+    );
+    const nameInput = screen.getByRole('textbox', { name: 'Column name' });
+    await user.clear(nameInput);
+    await user.type(nameInput, 'Backlog');
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    expect(screen.getByRole('heading', { name: 'To Do' })).toHaveFocus();
+  });
+
   it('keeps corrupt data until the user starts fresh', async () => {
     const user = userEvent.setup();
     writeStorage(BOARD_STORAGE_KEY, '{broken');

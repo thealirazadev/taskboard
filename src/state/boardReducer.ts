@@ -119,6 +119,33 @@ export function boardReducer(
         },
       };
     }
+    case 'RENAME_COLUMN': {
+      const board = state.boards[action.boardId];
+      const column = board?.columns[action.columnId];
+      const title = action.title.trim();
+      if (!board || !column || title.length === 0) {
+        return state;
+      }
+
+      if (column.title === title) {
+        return state;
+      }
+
+      return {
+        ...state,
+        boards: {
+          ...state.boards,
+          [board.id]: {
+            ...board,
+            columns: {
+              ...board.columns,
+              [column.id]: { ...column, title },
+            },
+            updatedAt: action.updatedAt,
+          },
+        },
+      };
+    }
     default:
       return state;
   }
