@@ -112,4 +112,74 @@ describe('boardReducer', () => {
       }),
     ).toBe(state);
   });
+
+  it('updates a card without mutating its previous value', () => {
+    const card = {
+      id: 'card-1',
+      title: 'Before',
+      description: '',
+      createdAt: 1,
+      updatedAt: 1,
+    };
+    const state: PersistedState = {
+      version: 1,
+      boardOrder: ['board-1'],
+      activeBoardId: 'board-1',
+      boards: {
+        'board-1': {
+          id: 'board-1',
+          title: 'Board',
+          columnOrder: ['column-1'],
+          columns: {
+            'column-1': {
+              id: 'column-1',
+              title: 'To Do',
+              cardIds: ['card-1'],
+            },
+          },
+          cards: { 'card-1': card },
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+    };
+
+    const nextState = boardReducer(state, {
+      type: 'UPDATE_CARD',
+      boardId: 'board-1',
+      cardId: 'card-1',
+      title: '  After  ',
+      description: 'Details',
+      updatedAt: 2,
+    });
+
+    expect(nextState.boards['board-1']?.cards['card-1']).toEqual({
+      ...card,
+      title: 'After',
+      description: 'Details',
+      updatedAt: 2,
+    });
+    expect(state.boards['board-1']?.cards['card-1']).toBe(card);
+
+    expect(
+      boardReducer(nextState, {
+        type: 'UPDATE_CARD',
+        boardId: 'board-1',
+        cardId: 'card-1',
+        title: 'After',
+        description: 'Details',
+        updatedAt: 3,
+      }),
+    ).toBe(nextState);
+    expect(
+      boardReducer(nextState, {
+        type: 'UPDATE_CARD',
+        boardId: 'board-1',
+        cardId: 'missing',
+        title: 'Task',
+        description: '',
+        updatedAt: 3,
+      }),
+    ).toBe(nextState);
+  });
 });

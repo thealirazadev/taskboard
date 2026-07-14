@@ -20,6 +20,7 @@ export default {
         success: 'var(--color-success)',
         'drag-overlay': 'var(--color-drag-overlay)',
         'drop-target': 'var(--color-drop-target)',
+        'modal-overlay': 'var(--color-modal-overlay)',
       },
       borderRadius: {
         sm: 'var(--radius-sm)',

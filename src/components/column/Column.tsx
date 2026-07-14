@@ -36,7 +36,7 @@ export function Column({ boardId, column, cards }: ColumnProps) {
         ) : (
           cards.map((card) => (
             <li key={card.id}>
-              <Card card={card} />
+              <Card boardId={boardId} card={card} />
             </li>
           ))
         )}

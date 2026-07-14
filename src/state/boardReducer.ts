@@ -51,6 +51,38 @@ export function boardReducer(
         },
       };
     }
+    case 'UPDATE_CARD': {
+      const board = state.boards[action.boardId];
+      const card = board?.cards[action.cardId];
+      const title = action.title.trim();
+      if (!board || !card || title.length === 0) {
+        return state;
+      }
+
+      if (card.title === title && card.description === action.description) {
+        return state;
+      }
+
+      return {
+        ...state,
+        boards: {
+          ...state.boards,
+          [board.id]: {
+            ...board,
+            cards: {
+              ...board.cards,
+              [card.id]: {
+                ...card,
+                title,
+                description: action.description,
+                updatedAt: action.updatedAt,
+              },
+            },
+            updatedAt: action.updatedAt,
+          },
+        },
+      };
+    }
     default:
       return state;
   }

@@ -51,6 +51,20 @@ function createSavedState(): PersistedState {
   };
 }
 
+function createSavedStateWithCard(): PersistedState {
+  const state = createSavedState();
+  const board = state.boards['board-personal']!;
+  board.columns['column-todo']!.cardIds = ['card-task'];
+  board.cards['card-task'] = {
+    id: 'card-task',
+    title: 'Initial task',
+    description: 'Initial details',
+    createdAt: 1,
+    updatedAt: 1,
+  };
+  return state;
+}
+
 beforeEach(() => {
   removeStorage(BOARD_STORAGE_KEY);
 });
@@ -134,6 +148,55 @@ describe('App', () => {
       'aria-invalid',
       'true',
     );
+  });
+
+  it('edits a card title and description in an accessible dialog', async () => {
+    const user = userEvent.setup();
+    persistState(createSavedStateWithCard());
+    render(<App />);
+
+    await user.click(
+      screen.getByRole('button', { name: 'Edit card Initial task' }),
+    );
+    expect(
+      screen.getByRole('dialog', { name: 'Edit Initial task' }),
+    ).toBeInTheDocument();
+    const titleInput = screen.getByRole('textbox', { name: 'Title' });
+    const descriptionInput = screen.getByRole('textbox', {
+      name: 'Description',
+    });
+    expect(titleInput).toHaveFocus();
+
+    await user.clear(titleInput);
+    await user.type(titleInput, 'Updated task');
+    await user.clear(descriptionInput);
+    await user.type(descriptionInput, 'Updated details');
+    await user.click(screen.getByRole('button', { name: 'Save changes' }));
+
+    expect(
+      screen.getByRole('heading', { name: 'Updated task' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Updated details')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Edit card Updated task' }),
+    ).toHaveFocus();
+  });
+
+  it('traps focus and restores it when card editing is cancelled', async () => {
+    const user = userEvent.setup();
+    persistState(createSavedStateWithCard());
+    render(<App />);
+    const editButton = screen.getByRole('button', {
+      name: 'Edit card Initial task',
+    });
+
+    await user.click(editButton);
+    await user.keyboard('{Shift>}{Tab}{/Shift}');
+    expect(screen.getByRole('button', { name: 'Save changes' })).toHaveFocus();
+    await user.keyboard('{Escape}');
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(editButton).toHaveFocus();
   });
 
   it('keeps corrupt data until the user starts fresh', async () => {
