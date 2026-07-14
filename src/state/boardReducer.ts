@@ -83,6 +83,42 @@ export function boardReducer(
         },
       };
     }
+    case 'DELETE_CARD': {
+      const board = state.boards[action.boardId];
+      if (!board || !board.cards[action.cardId]) {
+        return state;
+      }
+
+      const columnId = board.columnOrder.find((id) =>
+        board.columns[id]?.cardIds.includes(action.cardId),
+      );
+      const column = columnId ? board.columns[columnId] : undefined;
+      if (!columnId || !column) {
+        return state;
+      }
+
+      const remainingCards = { ...board.cards };
+      delete remainingCards[action.cardId];
+
+      return {
+        ...state,
+        boards: {
+          ...state.boards,
+          [board.id]: {
+            ...board,
+            cards: remainingCards,
+            columns: {
+              ...board.columns,
+              [columnId]: {
+                ...column,
+                cardIds: column.cardIds.filter((id) => id !== action.cardId),
+              },
+            },
+            updatedAt: action.updatedAt,
+          },
+        },
+      };
+    }
     default:
       return state;
   }

@@ -20,7 +20,8 @@ export function Column({ boardId, column, cards }: ColumnProps) {
       <header className="mb-3 flex items-center justify-between gap-2">
         <h3
           id={headingId}
-          className="min-w-0 break-words text-lg font-semibold"
+          tabIndex={-1}
+          className="min-w-0 break-words text-lg font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
         >
           {column.title}
         </h3>
@@ -36,7 +37,7 @@ export function Column({ boardId, column, cards }: ColumnProps) {
         ) : (
           cards.map((card) => (
             <li key={card.id}>
-              <Card boardId={boardId} card={card} />
+              <Card boardId={boardId} columnId={column.id} card={card} />
             </li>
           ))
         )}

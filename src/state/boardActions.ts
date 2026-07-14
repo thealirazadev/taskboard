@@ -11,4 +11,5 @@ export type BoardAction =
       title: string;
       description: string;
       updatedAt: number;
-    };
+    }
+  | { type: 'DELETE_CARD'; boardId: string; cardId: string; updatedAt: number };

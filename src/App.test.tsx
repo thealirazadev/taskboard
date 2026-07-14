@@ -199,6 +199,43 @@ describe('App', () => {
     expect(editButton).toHaveFocus();
   });
 
+  it('deletes a card after confirmation and moves focus to the column', async () => {
+    const user = userEvent.setup();
+    persistState(createSavedStateWithCard());
+    render(<App />);
+
+    await user.click(
+      screen.getByRole('button', { name: 'Delete card Initial task' }),
+    );
+    expect(
+      screen.getByRole('alertdialog', { name: 'Delete "Initial task"?' }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Delete card' }));
+
+    expect(
+      screen.queryByRole('heading', { name: 'Initial task' }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'To Do' })).toHaveFocus();
+  });
+
+  it('keeps a card when its deletion is cancelled', async () => {
+    const user = userEvent.setup();
+    persistState(createSavedStateWithCard());
+    render(<App />);
+    const deleteButton = screen.getByRole('button', {
+      name: 'Delete card Initial task',
+    });
+
+    await user.click(deleteButton);
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    expect(
+      screen.getByRole('heading', { name: 'Initial task' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(deleteButton).toHaveFocus();
+  });
+
   it('keeps corrupt data until the user starts fresh', async () => {
     const user = userEvent.setup();
     writeStorage(BOARD_STORAGE_KEY, '{broken');

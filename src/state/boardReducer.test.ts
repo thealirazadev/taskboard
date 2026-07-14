@@ -182,4 +182,66 @@ describe('boardReducer', () => {
       }),
     ).toBe(nextState);
   });
+
+  it('deletes a card and removes it from its column', () => {
+    const card = {
+      id: 'card-1',
+      title: 'Task',
+      description: '',
+      createdAt: 1,
+      updatedAt: 1,
+    };
+    const state: PersistedState = {
+      version: 1,
+      boardOrder: ['board-1'],
+      activeBoardId: 'board-1',
+      boards: {
+        'board-1': {
+          id: 'board-1',
+          title: 'Board',
+          columnOrder: ['column-1'],
+          columns: {
+            'column-1': {
+              id: 'column-1',
+              title: 'To Do',
+              cardIds: ['card-1'],
+            },
+          },
+          cards: { 'card-1': card },
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+    };
+
+    const nextState = boardReducer(state, {
+      type: 'DELETE_CARD',
+      boardId: 'board-1',
+      cardId: 'card-1',
+      updatedAt: 2,
+    });
+
+    expect(nextState.boards['board-1']?.cards).toEqual({});
+    expect(nextState.boards['board-1']?.columns['column-1']?.cardIds).toEqual(
+      [],
+    );
+    expect(nextState.boards['board-1']?.updatedAt).toBe(2);
+    expect(state.boards['board-1']?.cards).toEqual({ 'card-1': card });
+    expect(state.boards['board-1']?.columns['column-1']?.cardIds).toEqual([
+      'card-1',
+    ]);
+  });
+
+  it('ignores deleting a card that does not exist', () => {
+    const state = createEmptyState();
+
+    expect(
+      boardReducer(state, {
+        type: 'DELETE_CARD',
+        boardId: 'missing',
+        cardId: 'missing',
+        updatedAt: 1,
+      }),
+    ).toBe(state);
+  });
 });
