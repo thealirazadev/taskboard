@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Build and test artifacts
+dist/
+coverage/
+.vite/
+*.tsbuildinfo
+
+# Local environment and secrets
+.env
+.env.*
+.npmrc
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+secrets/
+credentials/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
