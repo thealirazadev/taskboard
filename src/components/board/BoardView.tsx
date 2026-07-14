@@ -1,11 +1,21 @@
+import { useBoardState } from '../../hooks/useBoardState';
+import { selectActiveBoard } from '../../state/selectors';
 import { Column } from '../column/Column';
-import type { Board } from '../../types/board';
+import { EmptyState } from '../common/EmptyState';
 
-interface BoardViewProps {
-  board: Board;
-}
+export function BoardView() {
+  const { state } = useBoardState();
+  const board = selectActiveBoard(state);
 
-export function BoardView({ board }: BoardViewProps) {
+  if (!board) {
+    return (
+      <EmptyState
+        heading="No boards yet"
+        description="Create a board to organize your work into clear next steps."
+      />
+    );
+  }
+
   const headingId = `board-${board.id}-heading`;
 
   return (

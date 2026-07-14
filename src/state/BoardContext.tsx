@@ -1,31 +1,21 @@
-import { createContext, useReducer } from 'react';
-import type { Dispatch, ReactNode } from 'react';
+import { createContext } from 'react';
+import type { ReactNode } from 'react';
 
-import type { PersistedState } from '../types/board';
-import type { BoardAction } from './boardActions';
-import { boardReducer, createEmptyState } from './boardReducer';
+import { useBoardStorage } from '../hooks/useBoardStorage';
+import type { BoardStorageValue } from '../hooks/useBoardStorage';
 
-export interface BoardContextValue {
-  state: PersistedState;
-  dispatch: Dispatch<BoardAction>;
-}
+export type BoardContextValue = BoardStorageValue;
 
 export const BoardContext = createContext<BoardContextValue | null>(null);
 
 interface BoardProviderProps {
   children: ReactNode;
-  initialState?: PersistedState;
 }
 
-export function BoardProvider({
-  children,
-  initialState = createEmptyState(),
-}: BoardProviderProps) {
-  const [state, dispatch] = useReducer(boardReducer, initialState);
+export function BoardProvider({ children }: BoardProviderProps) {
+  const value = useBoardStorage();
 
   return (
-    <BoardContext.Provider value={{ state, dispatch }}>
-      {children}
-    </BoardContext.Provider>
+    <BoardContext.Provider value={value}>{children}</BoardContext.Provider>
   );
 }
