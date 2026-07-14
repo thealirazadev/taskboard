@@ -5,6 +5,8 @@ import { removeStorage } from './localStorageDriver';
 import {
   BOARD_STORAGE_KEY,
   clearPersistedState,
+  deserializeState,
+  loadPersistedState,
   parseSerializedState,
   persistState,
   readSerializedState,
@@ -73,5 +75,34 @@ describe('persistence', () => {
 
     expect(clearPersistedState()).toEqual({ ok: true, value: undefined });
     expect(readSerializedState()).toEqual({ ok: true, value: null });
+  });
+
+  it('deserializes and loads validated state', () => {
+    const serializedState = JSON.stringify(emptyState);
+    expect(deserializeState(serializedState)).toEqual({
+      ok: true,
+      value: emptyState,
+    });
+
+    persistState(emptyState);
+    expect(loadPersistedState()).toEqual({ ok: true, value: emptyState });
+  });
+
+  it('rejects wrong-shaped and unsupported saved data', () => {
+    const schemaResult = deserializeState(
+      JSON.stringify({ ...emptyState, boardOrder: ['missing'] }),
+    );
+    expect(schemaResult.ok).toBe(false);
+    if (!schemaResult.ok) {
+      expect(schemaResult.error.kind).toBe('schema');
+    }
+
+    const migrationResult = deserializeState(
+      JSON.stringify({ ...emptyState, version: 2 }),
+    );
+    expect(migrationResult.ok).toBe(false);
+    if (!migrationResult.ok) {
+      expect(migrationResult.error.kind).toBe('migration');
+    }
   });
 });

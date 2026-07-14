@@ -1,15 +1,21 @@
 import type { PersistedState } from '../types/board';
 import type { Result } from '../types/result';
+import { BOARD_STORAGE_KEY } from './constants';
 import { readStorage, removeStorage, writeStorage } from './localStorageDriver';
 import type { StorageError } from './localStorageDriver';
+import { migrateToCurrentVersion } from './migrations';
+import type { MigrationError } from './migrations';
+import { validatePersistedState } from './schema';
+import type { SchemaError } from './schema';
 
-export const CURRENT_SCHEMA_VERSION = 1;
-export const BOARD_STORAGE_KEY = 'taskboard:v1';
+export { BOARD_STORAGE_KEY, CURRENT_SCHEMA_VERSION } from './constants';
 
 export type PersistenceError =
   | { kind: 'storage'; error: StorageError }
   | { kind: 'serialize'; cause: unknown }
-  | { kind: 'parse'; cause: unknown };
+  | { kind: 'parse'; cause: unknown }
+  | { kind: 'migration'; error: MigrationError }
+  | { kind: 'schema'; error: SchemaError };
 
 export function serializeState(
   state: PersistedState,
@@ -31,6 +37,28 @@ export function parseSerializedState(
   }
 }
 
+export function deserializeState(
+  serializedState: string,
+): Result<PersistedState, PersistenceError> {
+  const parseResult = parseSerializedState(serializedState);
+  if (!parseResult.ok) {
+    return parseResult;
+  }
+
+  const migrationResult = migrateToCurrentVersion(parseResult.value);
+  if (!migrationResult.ok) {
+    return {
+      ok: false,
+      error: { kind: 'migration', error: migrationResult.error },
+    };
+  }
+
+  const schemaResult = validatePersistedState(migrationResult.value);
+  return schemaResult.ok
+    ? schemaResult
+    : { ok: false, error: { kind: 'schema', error: schemaResult.error } };
+}
+
 export function readSerializedState(): Result<string | null, PersistenceError> {
   const result = readStorage(BOARD_STORAGE_KEY);
   return result.ok
@@ -50,6 +78,22 @@ export function persistState(
   return result.ok
     ? result
     : { ok: false, error: { kind: 'storage', error: result.error } };
+}
+
+export function loadPersistedState(): Result<
+  PersistedState | null,
+  PersistenceError
+> {
+  const readResult = readSerializedState();
+  if (!readResult.ok) {
+    return readResult;
+  }
+
+  if (readResult.value === null) {
+    return { ok: true, value: null };
+  }
+
+  return deserializeState(readResult.value);
 }
 
 export function clearPersistedState(): Result<void, PersistenceError> {
