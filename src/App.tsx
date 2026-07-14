@@ -1,6 +1,6 @@
 export function App() {
   return (
-    <main>
+    <main className="min-h-screen">
       <h1>taskboard</h1>
     </main>
   );
