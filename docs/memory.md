@@ -6,9 +6,11 @@ A running log of what is done, what is in progress, and why key decisions were m
 
 - 2026-07-15: Planning documentation created (README, PRD, architecture, rules, design, phases, testing, launch checklist).
 
+- 2026-07-16: Phase 3 (cards and columns editing) complete. Card add/edit/delete, inline column rename, and add/delete columns all implemented with confirmation dialogs and inline title validation. Added a regression test asserting a `<script>` card title renders as literal text (no `dangerouslySetInnerHTML` is used anywhere, so React's default JSX escaping was already sufficient; the commit locks this in with a test rather than new sanitization code).
+
 ## In progress
 
-- Nothing yet. Implementation has not started. Phase 1 in `phases.md` is next.
+- Phase 4 (drag-and-drop with dnd-kit) starting next.
 
 ## Decisions log
 
