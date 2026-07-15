@@ -124,6 +124,33 @@ describe('App', () => {
     ).toBeInTheDocument();
   });
 
+  it('renders a card title containing markup as literal text', async () => {
+    const user = userEvent.setup();
+    persistState(createSavedState());
+    render(<App />);
+    const todoColumn = screen.getByRole('region', { name: 'To Do' });
+    const maliciousTitle = '<script>window.__xss = true;</script>';
+
+    await user.click(
+      within(todoColumn).getByRole('button', { name: 'Add card' }),
+    );
+    await user.type(
+      within(todoColumn).getByRole('textbox', {
+        name: 'Card title for To Do',
+      }),
+      maliciousTitle,
+    );
+    await user.click(
+      within(todoColumn).getByRole('button', { name: 'Add card' }),
+    );
+
+    expect(
+      within(todoColumn).getByRole('heading', { name: maliciousTitle }),
+    ).toBeInTheDocument();
+    expect(todoColumn.querySelector('script')).not.toBeInTheDocument();
+    expect((window as { __xss?: boolean }).__xss).toBeUndefined();
+  });
+
   it('blocks a whitespace-only card title with an inline error', async () => {
     const user = userEvent.setup();
     persistState(createSavedState());
@@ -249,9 +276,7 @@ describe('App', () => {
     await user.type(nameInput, 'Backlog');
     await user.click(screen.getByRole('button', { name: 'Save name' }));
 
-    expect(
-      screen.getByRole('heading', { name: 'Backlog' }),
-    ).toHaveFocus();
+    expect(screen.getByRole('heading', { name: 'Backlog' })).toHaveFocus();
     expect(
       screen.queryByRole('heading', { name: 'To Do' }),
     ).not.toBeInTheDocument();
