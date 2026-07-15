@@ -1,4 +1,4 @@
-import type { Card, PersistedState } from '../types/board';
+import type { Card, Column, PersistedState } from '../types/board';
 
 export type BoardAction =
   | { type: 'REPLACE_STATE'; state: PersistedState }
@@ -18,5 +18,12 @@ export type BoardAction =
       boardId: string;
       columnId: string;
       title: string;
+      updatedAt: number;
+    }
+  | { type: 'ADD_COLUMN'; boardId: string; column: Column; updatedAt: number }
+  | {
+      type: 'DELETE_COLUMN';
+      boardId: string;
+      columnId: string;
       updatedAt: number;
     };

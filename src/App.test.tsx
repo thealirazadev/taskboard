@@ -290,6 +290,100 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: 'To Do' })).toHaveFocus();
   });
 
+  it('adds a new column to the board', async () => {
+    const user = userEvent.setup();
+    persistState(createSavedState());
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Add column' }));
+    await user.type(
+      screen.getByRole('textbox', { name: 'Column name' }),
+      'Backlog',
+    );
+    await user.click(screen.getByRole('button', { name: 'Add column' }));
+
+    expect(
+      screen.getByRole('heading', { name: 'Backlog' }),
+    ).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('region', { name: 'Backlog' })).getByText(
+        '0 cards',
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('blocks a whitespace-only column name when adding a column', async () => {
+    const user = userEvent.setup();
+    persistState(createSavedState());
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Add column' }));
+    await user.type(
+      screen.getByRole('textbox', { name: 'Column name' }),
+      '   ',
+    );
+    await user.keyboard('{Enter}');
+
+    expect(screen.getByText('Enter a title.')).toBeInTheDocument();
+  });
+
+  it('deletes an empty column after confirmation', async () => {
+    const user = userEvent.setup();
+    persistState(createSavedState());
+    render(<App />);
+
+    await user.click(
+      screen.getByRole('button', { name: 'Delete column Done' }),
+    );
+    expect(
+      screen.getByRole('alertdialog', { name: 'Delete "Done" column?' }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Delete column' }));
+
+    expect(
+      screen.queryByRole('heading', { name: 'Done' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Personal tasks' }),
+    ).toHaveFocus();
+  });
+
+  it('deletes a non-empty column and its cards together', async () => {
+    const user = userEvent.setup();
+    persistState(createSavedStateWithCard());
+    render(<App />);
+
+    await user.click(
+      screen.getByRole('button', { name: 'Delete column To Do' }),
+    );
+    expect(
+      screen.getByText(/this also deletes its 1 card/i),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Delete column' }));
+
+    expect(
+      screen.queryByRole('heading', { name: 'To Do' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: 'Initial task' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('keeps a column when its deletion is cancelled', async () => {
+    const user = userEvent.setup();
+    persistState(createSavedState());
+    render(<App />);
+    const deleteButton = screen.getByRole('button', {
+      name: 'Delete column Done',
+    });
+
+    await user.click(deleteButton);
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    expect(screen.getByRole('heading', { name: 'Done' })).toBeInTheDocument();
+    expect(deleteButton).toHaveFocus();
+  });
+
   it('keeps corrupt data until the user starts fresh', async () => {
     const user = userEvent.setup();
     writeStorage(BOARD_STORAGE_KEY, '{broken');

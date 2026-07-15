@@ -6,6 +6,7 @@ import {
 } from '../../state/selectors';
 import { Column } from '../column/Column';
 import { EmptyState } from '../common/EmptyState';
+import { BoardHeader } from './BoardHeader';
 
 export function BoardView() {
   const { state } = useBoardState();
@@ -25,21 +26,29 @@ export function BoardView() {
 
   return (
     <section aria-labelledby={headingId} className="mx-auto max-w-screen-2xl">
-      <h2 id={headingId} className="mb-4 text-xl font-semibold">
-        {board.title}
-      </h2>
-      <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-3">
-        {columns.map((column) => {
-          return (
-            <Column
-              key={column.id}
-              boardId={board.id}
-              column={column}
-              cards={selectCardsForColumn(state, board.id, column.id)}
-            />
-          );
-        })}
-      </div>
+      <BoardHeader
+        boardId={board.id}
+        boardTitle={board.title}
+        headingId={headingId}
+      />
+      {columns.length === 0 ? (
+        <EmptyState
+          heading="This board has no columns"
+          description="Add a column to start organizing cards."
+        />
+      ) : (
+        <div className="flex flex-col items-stretch gap-4 md:flex-row md:items-start md:overflow-x-auto md:pb-2">
+          {columns.map((column) => (
+            <div key={column.id} className="min-w-0 md:w-80 md:shrink-0">
+              <Column
+                boardId={board.id}
+                column={column}
+                cards={selectCardsForColumn(state, board.id, column.id)}
+              />
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

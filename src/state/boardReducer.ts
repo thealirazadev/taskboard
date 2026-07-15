@@ -146,6 +146,60 @@ export function boardReducer(
         },
       };
     }
+    case 'ADD_COLUMN': {
+      const board = state.boards[action.boardId];
+      if (
+        !board ||
+        board.columns[action.column.id] ||
+        action.column.title.trim().length === 0
+      ) {
+        return state;
+      }
+
+      return {
+        ...state,
+        boards: {
+          ...state.boards,
+          [board.id]: {
+            ...board,
+            columnOrder: [...board.columnOrder, action.column.id],
+            columns: { ...board.columns, [action.column.id]: action.column },
+            updatedAt: action.updatedAt,
+          },
+        },
+      };
+    }
+    case 'DELETE_COLUMN': {
+      const board = state.boards[action.boardId];
+      const column = board?.columns[action.columnId];
+      if (!board || !column) {
+        return state;
+      }
+
+      const remainingColumns = { ...board.columns };
+      delete remainingColumns[action.columnId];
+
+      const remainingCards = { ...board.cards };
+      for (const cardId of column.cardIds) {
+        delete remainingCards[cardId];
+      }
+
+      return {
+        ...state,
+        boards: {
+          ...state.boards,
+          [board.id]: {
+            ...board,
+            columnOrder: board.columnOrder.filter(
+              (id) => id !== action.columnId,
+            ),
+            columns: remainingColumns,
+            cards: remainingCards,
+            updatedAt: action.updatedAt,
+          },
+        },
+      };
+    }
     default:
       return state;
   }

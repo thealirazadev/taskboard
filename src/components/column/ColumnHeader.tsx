@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 
 import { useBoardState } from '../../hooks/useBoardState';
+import { useConfirm } from '../../hooks/useConfirm';
 import { validateTitle } from '../../lib/validation';
+import { ConfirmDialog } from '../common/ConfirmDialog';
 
 interface ColumnHeaderProps {
   boardId: string;
@@ -23,6 +25,7 @@ export function ColumnHeader({
   const [isRenaming, setIsRenaming] = useState(false);
   const [draftTitle, setDraftTitle] = useState(title);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const { pending, confirm, respondConfirm, respondCancel } = useConfirm();
   const cardLabel = cardCount === 1 ? '1 card' : `${cardCount} cards`;
   const errorId = `column-${columnId}-name-error`;
 
@@ -63,6 +66,30 @@ export function ColumnHeader({
       updatedAt: Date.now(),
     });
     setIsRenaming(false);
+  }
+
+  async function handleDeleteColumn(): Promise<void> {
+    const cardWarning =
+      cardCount > 0
+        ? ` This also deletes ${cardCount === 1 ? 'its 1 card' : `its ${cardCount} cards`}.`
+        : '';
+    const confirmed = await confirm({
+      title: `Delete "${title}" column?`,
+      description: `This removes the column.${cardWarning} This action cannot be undone.`,
+      confirmLabel: 'Delete column',
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
+    dispatch({
+      type: 'DELETE_COLUMN',
+      boardId,
+      columnId,
+      updatedAt: Date.now(),
+    });
+    document.getElementById(`board-${boardId}-heading`)?.focus();
   }
 
   if (isRenaming) {
@@ -110,25 +137,44 @@ export function ColumnHeader({
   }
 
   return (
-    <header className="mb-3 flex items-center justify-between gap-2">
-      <h3
-        id={headingId}
-        tabIndex={-1}
-        className="min-w-0 break-words text-lg font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
-      >
-        {title}
-      </h3>
-      <div className="flex shrink-0 items-center gap-2">
-        <span className="text-xs font-medium text-muted">{cardLabel}</span>
-        <button
-          type="button"
-          aria-label={`Rename column ${title}`}
-          onClick={startRenaming}
-          className="min-h-10 rounded-md border border-border bg-surface px-3 py-2 text-sm font-medium hover:bg-background"
+    <>
+      <header className="mb-3 flex items-center justify-between gap-2">
+        <h3
+          id={headingId}
+          tabIndex={-1}
+          className="min-w-0 break-words text-lg font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
         >
-          Rename
-        </button>
-      </div>
-    </header>
+          {title}
+        </h3>
+        <div className="flex shrink-0 items-center gap-2">
+          <span className="text-xs font-medium text-muted">{cardLabel}</span>
+          <button
+            type="button"
+            aria-label={`Rename column ${title}`}
+            onClick={startRenaming}
+            className="min-h-10 rounded-md border border-border bg-surface px-3 py-2 text-sm font-medium hover:bg-background"
+          >
+            Rename
+          </button>
+          <button
+            type="button"
+            aria-label={`Delete column ${title}`}
+            onClick={handleDeleteColumn}
+            className="min-h-10 rounded-md border border-border bg-surface px-3 py-2 text-sm font-medium text-danger hover:bg-background"
+          >
+            Delete
+          </button>
+        </div>
+      </header>
+      {pending ? (
+        <ConfirmDialog
+          title={pending.title}
+          description={pending.description}
+          confirmLabel={pending.confirmLabel}
+          onConfirm={respondConfirm}
+          onCancel={respondCancel}
+        />
+      ) : null}
+    </>
   );
 }

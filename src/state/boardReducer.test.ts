@@ -328,4 +328,129 @@ describe('boardReducer', () => {
       }),
     ).toBe(state);
   });
+
+  it('adds a validated column to the end of a board', () => {
+    const state: PersistedState = {
+      version: 1,
+      boardOrder: ['board-1'],
+      activeBoardId: 'board-1',
+      boards: {
+        'board-1': {
+          id: 'board-1',
+          title: 'Board',
+          columnOrder: ['column-1'],
+          columns: {
+            'column-1': { id: 'column-1', title: 'To Do', cardIds: [] },
+          },
+          cards: {},
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+    };
+    const column = { id: 'column-2', title: 'Doing', cardIds: [] };
+
+    const nextState = boardReducer(state, {
+      type: 'ADD_COLUMN',
+      boardId: 'board-1',
+      column,
+      updatedAt: 2,
+    });
+
+    expect(nextState.boards['board-1']?.columnOrder).toEqual([
+      'column-1',
+      'column-2',
+    ]);
+    expect(nextState.boards['board-1']?.columns['column-2']).toBe(column);
+    expect(nextState.boards['board-1']?.updatedAt).toBe(2);
+    expect(state.boards['board-1']?.columnOrder).toEqual(['column-1']);
+  });
+
+  it('ignores invalid column additions', () => {
+    const state = createEmptyState();
+    const column = { id: 'column-1', title: 'Doing', cardIds: [] };
+
+    expect(
+      boardReducer(state, {
+        type: 'ADD_COLUMN',
+        boardId: 'missing',
+        column,
+        updatedAt: 1,
+      }),
+    ).toBe(state);
+    expect(
+      boardReducer(state, {
+        type: 'ADD_COLUMN',
+        boardId: 'missing',
+        column: { ...column, title: '  ' },
+        updatedAt: 1,
+      }),
+    ).toBe(state);
+  });
+
+  it('deletes a column along with its cards', () => {
+    const state: PersistedState = {
+      version: 1,
+      boardOrder: ['board-1'],
+      activeBoardId: 'board-1',
+      boards: {
+        'board-1': {
+          id: 'board-1',
+          title: 'Board',
+          columnOrder: ['column-1', 'column-2'],
+          columns: {
+            'column-1': {
+              id: 'column-1',
+              title: 'To Do',
+              cardIds: ['card-1'],
+            },
+            'column-2': { id: 'column-2', title: 'Done', cardIds: [] },
+          },
+          cards: {
+            'card-1': {
+              id: 'card-1',
+              title: 'Task',
+              description: '',
+              createdAt: 1,
+              updatedAt: 1,
+            },
+          },
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+    };
+
+    const nextState = boardReducer(state, {
+      type: 'DELETE_COLUMN',
+      boardId: 'board-1',
+      columnId: 'column-1',
+      updatedAt: 2,
+    });
+
+    expect(nextState.boards['board-1']?.columnOrder).toEqual(['column-2']);
+    expect(nextState.boards['board-1']?.columns).toEqual({
+      'column-2': { id: 'column-2', title: 'Done', cardIds: [] },
+    });
+    expect(nextState.boards['board-1']?.cards).toEqual({});
+    expect(nextState.boards['board-1']?.updatedAt).toBe(2);
+    expect(state.boards['board-1']?.columnOrder).toEqual([
+      'column-1',
+      'column-2',
+    ]);
+    expect(state.boards['board-1']?.cards).toHaveProperty('card-1');
+  });
+
+  it('ignores deleting a column that does not exist', () => {
+    const state = createEmptyState();
+
+    expect(
+      boardReducer(state, {
+        type: 'DELETE_COLUMN',
+        boardId: 'missing',
+        columnId: 'missing',
+        updatedAt: 1,
+      }),
+    ).toBe(state);
+  });
 });
