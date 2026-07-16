@@ -1,3 +1,4 @@
+import { useDroppable } from '@dnd-kit/core';
 import {
   SortableContext,
   verticalListSortingStrategy,
@@ -12,6 +13,26 @@ interface ColumnProps {
   boardId: string;
   column: ColumnData;
   cards: CardData[];
+}
+
+/** Empty columns have no sortable card to register as a drop target, so this
+ * placeholder registers one directly. */
+function EmptyColumnDropTarget({ columnId }: { columnId: string }) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `column-${columnId}-empty`,
+    data: { type: 'card', cardId: '', columnId },
+  });
+
+  return (
+    <li
+      ref={setNodeRef}
+      className={`rounded-md border border-dashed px-3 py-6 text-center text-sm text-muted ${
+        isOver ? 'border-accent bg-drop-target' : 'border-border'
+      }`}
+    >
+      No cards. Add one below.
+    </li>
+  );
 }
 
 export function Column({ boardId, column, cards }: ColumnProps) {
@@ -35,9 +56,7 @@ export function Column({ boardId, column, cards }: ColumnProps) {
       >
         <ul aria-label={`${column.title} cards`} className="space-y-2">
           {cards.length === 0 ? (
-            <li className="rounded-md border border-dashed border-border px-3 py-6 text-center text-sm text-muted">
-              No cards. Add one below.
-            </li>
+            <EmptyColumnDropTarget columnId={column.id} />
           ) : (
             cards.map((card) => (
               <li key={card.id}>
