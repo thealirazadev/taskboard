@@ -1,6 +1,7 @@
 import { useBoardState } from '../hooks/useBoardState';
 import { BoardSwitcher } from './board/BoardSwitcher';
 import { BoardView } from './board/BoardView';
+import { DataTransfer } from './board/DataTransfer';
 import { ErrorBanner } from './common/ErrorBanner';
 import { ThemeToggle } from './common/ThemeToggle';
 
@@ -18,6 +19,7 @@ export function AppShell() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <BoardSwitcher />
+          <DataTransfer />
           <ThemeToggle />
         </div>
       </header>

@@ -505,6 +505,33 @@ describe('App', () => {
     ).toBeInTheDocument();
   });
 
+  it('exports all board data as a downloaded JSON file', async () => {
+    const user = userEvent.setup();
+    persistState(createSavedStateWithCard());
+    render(<App />);
+
+    const createObjectURL = vi.fn<(blob: Blob) => string>(
+      () => 'blob:mock-url',
+    );
+    const revokeObjectURL = vi.fn();
+    Object.assign(URL, { createObjectURL, revokeObjectURL });
+    const clickSpy = vi
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => {});
+
+    try {
+      await user.click(screen.getByRole('button', { name: 'Export data' }));
+
+      expect(createObjectURL).toHaveBeenCalledTimes(1);
+      const [blob] = createObjectURL.mock.calls[0]!;
+      expect(blob.type).toBe('application/json');
+      expect(clickSpy).toHaveBeenCalledTimes(1);
+      expect(revokeObjectURL).toHaveBeenCalledWith('blob:mock-url');
+    } finally {
+      clickSpy.mockRestore();
+    }
+  });
+
   it('continues in memory when local storage is unavailable', () => {
     const storageDescriptor = Object.getOwnPropertyDescriptor(
       window,
