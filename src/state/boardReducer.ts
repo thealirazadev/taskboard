@@ -1,3 +1,4 @@
+import { moveWithinArray } from '../lib/reorder';
 import { CURRENT_SCHEMA_VERSION } from '../storage/constants';
 import type { PersistedState } from '../types/board';
 import type { BoardAction } from './boardActions';
@@ -195,6 +196,50 @@ export function boardReducer(
             ),
             columns: remainingColumns,
             cards: remainingCards,
+            updatedAt: action.updatedAt,
+          },
+        },
+      };
+    }
+    case 'MOVE_CARD': {
+      const board = state.boards[action.boardId];
+      const fromColumn = board?.columns[action.fromColumnId];
+      const toColumn = board?.columns[action.toColumnId];
+      if (!board || !fromColumn || !toColumn || !board.cards[action.cardId]) {
+        return state;
+      }
+
+      const fromIndex = fromColumn.cardIds.indexOf(action.cardId);
+      if (fromIndex === -1) {
+        return state;
+      }
+
+      if (action.fromColumnId !== action.toColumnId) {
+        // Cross-column moves land in a later commit; ignore for now.
+        return state;
+      }
+
+      const toIndex = Math.min(
+        Math.max(action.toIndex, 0),
+        fromColumn.cardIds.length - 1,
+      );
+      if (toIndex === fromIndex) {
+        return state;
+      }
+
+      return {
+        ...state,
+        boards: {
+          ...state.boards,
+          [board.id]: {
+            ...board,
+            columns: {
+              ...board.columns,
+              [fromColumn.id]: {
+                ...fromColumn,
+                cardIds: moveWithinArray(fromColumn.cardIds, fromIndex, toIndex),
+              },
+            },
             updatedAt: action.updatedAt,
           },
         },

@@ -38,7 +38,7 @@ export function BoardView() {
           description="Add a column to start organizing cards."
         />
       ) : (
-        <BoardDndContext>
+        <BoardDndContext boardId={board.id}>
           <div className="flex flex-col items-stretch gap-4 md:flex-row md:items-start md:overflow-x-auto md:pb-2">
             {columns.map((column) => (
               <div key={column.id} className="min-w-0 md:w-80 md:shrink-0">

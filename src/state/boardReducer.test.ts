@@ -453,4 +453,85 @@ describe('boardReducer', () => {
       }),
     ).toBe(state);
   });
+
+  function createTwoColumnState(): PersistedState {
+    return {
+      version: 1,
+      boardOrder: ['board-1'],
+      activeBoardId: 'board-1',
+      boards: {
+        'board-1': {
+          id: 'board-1',
+          title: 'Board',
+          columnOrder: ['column-1', 'column-2'],
+          columns: {
+            'column-1': {
+              id: 'column-1',
+              title: 'To Do',
+              cardIds: ['card-1', 'card-2'],
+            },
+            'column-2': { id: 'column-2', title: 'Done', cardIds: [] },
+          },
+          cards: {
+            'card-1': {
+              id: 'card-1',
+              title: 'First',
+              description: '',
+              createdAt: 1,
+              updatedAt: 1,
+            },
+            'card-2': {
+              id: 'card-2',
+              title: 'Second',
+              description: '',
+              createdAt: 1,
+              updatedAt: 1,
+            },
+          },
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+    };
+  }
+
+  it('reorders a card within the same column', () => {
+    const state = createTwoColumnState();
+
+    const nextState = boardReducer(state, {
+      type: 'MOVE_CARD',
+      boardId: 'board-1',
+      cardId: 'card-1',
+      fromColumnId: 'column-1',
+      toColumnId: 'column-1',
+      toIndex: 1,
+      updatedAt: 2,
+    });
+
+    expect(nextState.boards['board-1']?.columns['column-1']?.cardIds).toEqual(
+      ['card-2', 'card-1'],
+    );
+    expect(nextState.boards['board-1']?.updatedAt).toBe(2);
+    expect(state.boards['board-1']?.columns['column-1']?.cardIds).toEqual([
+      'card-1',
+      'card-2',
+    ]);
+  });
+
+  it('is a no-op when dropping a card back at its original index', () => {
+    const state = createTwoColumnState();
+
+    expect(
+      boardReducer(state, {
+        type: 'MOVE_CARD',
+        boardId: 'board-1',
+        cardId: 'card-1',
+        fromColumnId: 'column-1',
+        toColumnId: 'column-1',
+        toIndex: 0,
+        updatedAt: 2,
+      }),
+    ).toBe(state);
+  });
+
 });

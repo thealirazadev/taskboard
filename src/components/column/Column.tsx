@@ -1,3 +1,8 @@
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+
 import { Card } from '../card/Card';
 import { AddCardForm } from './AddCardForm';
 import { ColumnHeader } from './ColumnHeader';
@@ -24,19 +29,24 @@ export function Column({ boardId, column, cards }: ColumnProps) {
         title={column.title}
         cardCount={cards.length}
       />
-      <ul aria-label={`${column.title} cards`} className="space-y-2">
-        {cards.length === 0 ? (
-          <li className="rounded-md border border-dashed border-border px-3 py-6 text-center text-sm text-muted">
-            No cards. Add one below.
-          </li>
-        ) : (
-          cards.map((card) => (
-            <li key={card.id}>
-              <Card boardId={boardId} columnId={column.id} card={card} />
+      <SortableContext
+        items={cards.map((card) => card.id)}
+        strategy={verticalListSortingStrategy}
+      >
+        <ul aria-label={`${column.title} cards`} className="space-y-2">
+          {cards.length === 0 ? (
+            <li className="rounded-md border border-dashed border-border px-3 py-6 text-center text-sm text-muted">
+              No cards. Add one below.
             </li>
-          ))
-        )}
-      </ul>
+          ) : (
+            cards.map((card) => (
+              <li key={card.id}>
+                <Card boardId={boardId} columnId={column.id} card={card} />
+              </li>
+            ))
+          )}
+        </ul>
+      </SortableContext>
       <AddCardForm
         boardId={boardId}
         columnId={column.id}

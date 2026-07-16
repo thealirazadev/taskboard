@@ -26,4 +26,13 @@ export type BoardAction =
       boardId: string;
       columnId: string;
       updatedAt: number;
+    }
+  | {
+      type: 'MOVE_CARD';
+      boardId: string;
+      cardId: string;
+      fromColumnId: string;
+      toColumnId: string;
+      toIndex: number;
+      updatedAt: number;
     };
