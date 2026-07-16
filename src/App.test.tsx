@@ -448,9 +448,7 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Create board' }));
 
     expect(screen.getByRole('heading', { name: 'Work' })).toBeInTheDocument();
-    expect(
-      screen.getByText('This board has no columns'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('This board has no columns')).toBeInTheDocument();
 
     await user.selectOptions(
       screen.getByRole('combobox', { name: 'Switch board' }),
@@ -471,10 +469,7 @@ describe('App', () => {
     render(<App />);
 
     await user.click(screen.getByRole('button', { name: 'New board' }));
-    await user.type(
-      screen.getByRole('textbox', { name: 'Board name' }),
-      '   ',
-    );
+    await user.type(screen.getByRole('textbox', { name: 'Board name' }), '   ');
     await user.keyboard('{Enter}');
 
     expect(screen.getByText('Enter a title.')).toBeInTheDocument();

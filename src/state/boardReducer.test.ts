@@ -590,9 +590,10 @@ describe('boardReducer', () => {
       updatedAt: 2,
     });
 
-    expect(nextState.boards['board-1']?.columns['column-1']?.cardIds).toEqual(
-      ['card-2', 'card-1'],
-    );
+    expect(nextState.boards['board-1']?.columns['column-1']?.cardIds).toEqual([
+      'card-2',
+      'card-1',
+    ]);
     expect(nextState.boards['board-1']?.updatedAt).toBe(2);
     expect(state.boards['board-1']?.columns['column-1']?.cardIds).toEqual([
       'card-1',
@@ -613,12 +614,12 @@ describe('boardReducer', () => {
       updatedAt: 2,
     });
 
-    expect(nextState.boards['board-1']?.columns['column-1']?.cardIds).toEqual(
-      ['card-2'],
-    );
-    expect(nextState.boards['board-1']?.columns['column-2']?.cardIds).toEqual(
-      ['card-1'],
-    );
+    expect(nextState.boards['board-1']?.columns['column-1']?.cardIds).toEqual([
+      'card-2',
+    ]);
+    expect(nextState.boards['board-1']?.columns['column-2']?.cardIds).toEqual([
+      'card-1',
+    ]);
     expect(state.boards['board-1']?.columns['column-2']?.cardIds).toEqual([]);
   });
 
@@ -669,5 +670,4 @@ describe('boardReducer', () => {
       }),
     ).toBe(state);
   });
-
 });

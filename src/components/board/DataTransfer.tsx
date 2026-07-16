@@ -32,7 +32,10 @@ function readImportFile(
     try {
       parsed = JSON.parse(text);
     } catch (cause) {
-      onError('That file is not valid JSON. Existing data was not changed.', cause);
+      onError(
+        'That file is not valid JSON. Existing data was not changed.',
+        cause,
+      );
       onParsed(null);
       return;
     }
