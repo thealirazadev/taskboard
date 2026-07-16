@@ -2,6 +2,7 @@ import { useBoardState } from '../hooks/useBoardState';
 import { BoardSwitcher } from './board/BoardSwitcher';
 import { BoardView } from './board/BoardView';
 import { ErrorBanner } from './common/ErrorBanner';
+import { ThemeToggle } from './common/ThemeToggle';
 
 export function AppShell() {
   const { notice, dismissNotice, resetStorage } = useBoardState();
@@ -15,7 +16,10 @@ export function AppShell() {
             A private board for focused work.
           </p>
         </div>
-        <BoardSwitcher />
+        <div className="flex flex-wrap items-center gap-2">
+          <BoardSwitcher />
+          <ThemeToggle />
+        </div>
       </header>
       <div className="mx-auto max-w-screen-2xl">
         {notice ? (

@@ -1,9 +1,9 @@
-import { render, screen, within } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { App } from './App';
-import { BOARD_STORAGE_KEY } from './storage/constants';
+import { BOARD_STORAGE_KEY, THEME_STORAGE_KEY } from './storage/constants';
 import {
   readStorage,
   removeStorage,
@@ -67,10 +67,14 @@ function createSavedStateWithCard(): PersistedState {
 
 beforeEach(() => {
   removeStorage(BOARD_STORAGE_KEY);
+  removeStorage(THEME_STORAGE_KEY);
+  document.documentElement.classList.remove('light', 'dark');
 });
 
 afterEach(() => {
   removeStorage(BOARD_STORAGE_KEY);
+  removeStorage(THEME_STORAGE_KEY);
+  document.documentElement.classList.remove('light', 'dark');
 });
 
 describe('App', () => {
@@ -474,6 +478,31 @@ describe('App', () => {
     await user.keyboard('{Enter}');
 
     expect(screen.getByText('Enter a title.')).toBeInTheDocument();
+  });
+
+  it('toggles the theme and persists the choice across reload', async () => {
+    const user = userEvent.setup();
+    persistState(createSavedState());
+    render(<App />);
+
+    expect(document.documentElement.classList.contains('dark')).toBe(false);
+    await user.click(
+      screen.getByRole('button', { name: 'Switch to dark theme' }),
+    );
+
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
+    expect(readStorage(THEME_STORAGE_KEY)).toEqual({
+      ok: true,
+      value: 'dark',
+    });
+
+    cleanup();
+    render(<App />);
+
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
+    expect(
+      screen.getByRole('button', { name: 'Switch to light theme' }),
+    ).toBeInTheDocument();
   });
 
   it('continues in memory when local storage is unavailable', () => {
