@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { moveWithinArray } from './reorder';
+import { moveBetweenArrays, moveWithinArray } from './reorder';
 
 describe('moveWithinArray', () => {
   it('moves an item forward', () => {
@@ -20,5 +20,27 @@ describe('moveWithinArray', () => {
     const items = ['a', 'b'];
     expect(moveWithinArray(items, 0, 5)).toBe(items);
     expect(moveWithinArray(items, -1, 0)).toBe(items);
+  });
+});
+
+describe('moveBetweenArrays', () => {
+  it('moves an item from source into destination at the given index', () => {
+    const result = moveBetweenArrays(['a', 'b'], ['x', 'y'], 0, 1);
+    expect(result.source).toEqual(['b']);
+    expect(result.destination).toEqual(['x', 'a', 'y']);
+  });
+
+  it('appends when the destination index is beyond the end', () => {
+    const result = moveBetweenArrays(['a'], [], 0, 10);
+    expect(result.source).toEqual([]);
+    expect(result.destination).toEqual(['a']);
+  });
+
+  it('returns the originals for an out-of-range source index', () => {
+    const source = ['a'];
+    const destination = ['b'];
+    const result = moveBetweenArrays(source, destination, 5, 0);
+    expect(result.source).toBe(source);
+    expect(result.destination).toBe(destination);
   });
 });

@@ -21,3 +21,27 @@ export function moveWithinArray<T>(
   next.splice(toIndex, 0, moved);
   return next;
 }
+
+/** Moves the item at `fromIndex` in `source` into `destination` at `toIndex`. */
+export function moveBetweenArrays<T>(
+  source: T[],
+  destination: T[],
+  fromIndex: number,
+  toIndex: number,
+): { source: T[]; destination: T[] } {
+  if (fromIndex < 0 || fromIndex >= source.length) {
+    return { source, destination };
+  }
+
+  const nextSource = [...source];
+  const [moved] = nextSource.splice(fromIndex, 1);
+  if (moved === undefined) {
+    return { source, destination };
+  }
+
+  const nextDestination = [...destination];
+  const clampedIndex = Math.min(Math.max(toIndex, 0), nextDestination.length);
+  nextDestination.splice(clampedIndex, 0, moved);
+
+  return { source: nextSource, destination: nextDestination };
+}

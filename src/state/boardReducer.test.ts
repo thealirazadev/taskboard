@@ -518,6 +518,60 @@ describe('boardReducer', () => {
     ]);
   });
 
+  it('moves a card into another column, including an empty one', () => {
+    const state = createTwoColumnState();
+
+    const nextState = boardReducer(state, {
+      type: 'MOVE_CARD',
+      boardId: 'board-1',
+      cardId: 'card-1',
+      fromColumnId: 'column-1',
+      toColumnId: 'column-2',
+      toIndex: 0,
+      updatedAt: 2,
+    });
+
+    expect(nextState.boards['board-1']?.columns['column-1']?.cardIds).toEqual(
+      ['card-2'],
+    );
+    expect(nextState.boards['board-1']?.columns['column-2']?.cardIds).toEqual(
+      ['card-1'],
+    );
+    expect(state.boards['board-1']?.columns['column-2']?.cardIds).toEqual([]);
+  });
+
+  it('ignores moving a card that does not exist in the source column', () => {
+    const state = createTwoColumnState();
+
+    expect(
+      boardReducer(state, {
+        type: 'MOVE_CARD',
+        boardId: 'board-1',
+        cardId: 'missing-card',
+        fromColumnId: 'column-1',
+        toColumnId: 'column-2',
+        toIndex: 0,
+        updatedAt: 2,
+      }),
+    ).toBe(state);
+  });
+
+  it('ignores moving a card to a column that does not exist', () => {
+    const state = createTwoColumnState();
+
+    expect(
+      boardReducer(state, {
+        type: 'MOVE_CARD',
+        boardId: 'board-1',
+        cardId: 'card-1',
+        fromColumnId: 'column-1',
+        toColumnId: 'missing-column',
+        toIndex: 0,
+        updatedAt: 2,
+      }),
+    ).toBe(state);
+  });
+
   it('is a no-op when dropping a card back at its original index', () => {
     const state = createTwoColumnState();
 
