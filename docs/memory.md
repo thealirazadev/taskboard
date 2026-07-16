@@ -8,9 +8,12 @@ A running log of what is done, what is in progress, and why key decisions were m
 
 - 2026-07-16: Phase 3 (cards and columns editing) complete. Card add/edit/delete, inline column rename, and add/delete columns all implemented with confirmation dialogs and inline title validation. Added a regression test asserting a `<script>` card title renders as literal text (no `dangerouslySetInnerHTML` is used anywhere, so React's default JSX escaping was already sufficient; the commit locks this in with a test rather than new sanitization code).
 
+- 2026-07-17: Phase 4 (drag-and-drop with dnd-kit) complete. `feat(dnd): add dnd-kit context and sensors` had already landed; continued with `feat(dnd): make cards sortable within columns` (drag handle button on each `Card`, `SortableContext` per column, `moveWithinArray` reducer support for `MOVE_CARD`), `feat(dnd): support moving cards across columns` (`moveBetweenArrays`, cross-column `MOVE_CARD` branch), `fix(dnd): make empty columns a valid drop target` (an empty column has no sortable item to anchor a drop zone, so its placeholder now registers its own `useDroppable`), and `feat(dnd): add keyboard drag announcements` (dnd-kit `accessibility.announcements` for pick up/over/drop/cancel, plus a `DragOverlay` and drop-target highlight per `design.md`). `npm run test:run`, `npm run build`, and `npm run lint` all pass clean after every commit.
+  - Limitation: this environment has no browser/display, so the phase's manual QA checklist (pointer drag, keyboard drag end to end, Esc-cancel, mid-drag refresh, reduced-motion) per `testing.md` (which calls DnD manual QA "authoritative") was reasoned through via reducer/unit tests and code review, not exercised in a live browser. Flagging this so a real manual pass happens before shipping.
+
 ## In progress
 
-- Phase 4 (drag-and-drop with dnd-kit) starting next.
+- Phase 5 (multiple boards, theme, import/export) starting next.
 
 ## Decisions log
 
