@@ -532,6 +532,68 @@ describe('App', () => {
     }
   });
 
+  it('imports a valid export after confirmation', async () => {
+    const user = userEvent.setup();
+    persistState(createSavedState());
+    render(<App />);
+
+    const imported = createSavedStateWithCard();
+    imported.boards['board-personal']!.title = 'Imported board';
+    const file = new File([JSON.stringify(imported)], 'export.json', {
+      type: 'application/json',
+    });
+
+    await user.upload(screen.getByLabelText('Import data'), file);
+    expect(
+      await screen.findByRole('alertdialog', {
+        name: 'Replace all board data?',
+      }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Replace data' }));
+
+    expect(
+      await screen.findByRole('heading', { name: 'Imported board' }),
+    ).toBeInTheDocument();
+  });
+
+  it('rejects malformed JSON on import and leaves existing data untouched', async () => {
+    const user = userEvent.setup();
+    persistState(createSavedState());
+    render(<App />);
+
+    const file = new File(['{not valid json'], 'export.json', {
+      type: 'application/json',
+    });
+
+    await user.upload(screen.getByLabelText('Import data'), file);
+
+    expect(
+      await screen.findByText(/that file is not valid json/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Personal tasks' }),
+    ).toBeInTheDocument();
+  });
+
+  it('rejects a valid-JSON-but-wrong-shape import and leaves data untouched', async () => {
+    const user = userEvent.setup();
+    persistState(createSavedState());
+    render(<App />);
+
+    const file = new File([JSON.stringify({ hello: 'world' })], 'export.json', {
+      type: 'application/json',
+    });
+
+    await user.upload(screen.getByLabelText('Import data'), file);
+
+    expect(
+      await screen.findByText(/not a valid taskboard export/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Personal tasks' }),
+    ).toBeInTheDocument();
+  });
+
   it('continues in memory when local storage is unavailable', () => {
     const storageDescriptor = Object.getOwnPropertyDescriptor(
       window,

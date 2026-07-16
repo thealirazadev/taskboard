@@ -1,5 +1,11 @@
+import type { ChangeEvent } from 'react';
+
 import { useBoardState } from '../../hooks/useBoardState';
+import { useConfirm } from '../../hooks/useConfirm';
 import { logger } from '../../lib/logger';
+import { validatePersistedState } from '../../storage/schema';
+import type { PersistedState } from '../../types/board';
+import { ConfirmDialog } from '../common/ConfirmDialog';
 
 function downloadJson(filename: string, contents: string): void {
   const blob = new Blob([contents], { type: 'application/json' });
@@ -14,8 +20,45 @@ function downloadJson(filename: string, contents: string): void {
   }
 }
 
+function readImportFile(
+  file: File,
+  onParsed: (state: PersistedState | null) => void,
+  onError: (message: string, cause: unknown) => void,
+): void {
+  const reader = new FileReader();
+  reader.onload = () => {
+    const text = typeof reader.result === 'string' ? reader.result : '';
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text);
+    } catch (cause) {
+      onError('That file is not valid JSON. Existing data was not changed.', cause);
+      onParsed(null);
+      return;
+    }
+
+    const result = validatePersistedState(parsed);
+    if (!result.ok) {
+      onError(
+        'That file is not a valid taskboard export. Existing data was not changed.',
+        result.error,
+      );
+      onParsed(null);
+      return;
+    }
+
+    onParsed(result.value);
+  };
+  reader.onerror = () => {
+    onError('That file could not be read. Please try again.', reader.error);
+    onParsed(null);
+  };
+  reader.readAsText(file);
+}
+
 export function DataTransfer() {
-  const { state, showError } = useBoardState();
+  const { state, dispatch, showError } = useBoardState();
+  const { pending, confirm, respondConfirm, respondCancel } = useConfirm();
 
   function handleExport(): void {
     try {
@@ -29,6 +72,38 @@ export function DataTransfer() {
     }
   }
 
+  function handleFileSelected(event: ChangeEvent<HTMLInputElement>): void {
+    const file = event.target.files?.[0] ?? null;
+    event.target.value = '';
+    if (!file) {
+      return;
+    }
+
+    readImportFile(
+      file,
+      (importedState) => {
+        if (!importedState) {
+          return;
+        }
+        void (async () => {
+          const confirmed = await confirm({
+            title: 'Replace all board data?',
+            description:
+              'Importing replaces every board currently saved with the contents of this file. This action cannot be undone.',
+            confirmLabel: 'Replace data',
+          });
+          if (confirmed) {
+            dispatch({ type: 'REPLACE_STATE', state: importedState });
+          }
+        })();
+      },
+      (message, cause) => {
+        logger.warn('Board data could not be imported.', { error: cause });
+        showError(message);
+      },
+    );
+  }
+
   return (
     <div className="flex flex-wrap items-center gap-2">
       <button
@@ -38,6 +113,24 @@ export function DataTransfer() {
       >
         Export data
       </button>
+      <label className="min-h-10 cursor-pointer rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium hover:bg-background">
+        Import data
+        <input
+          type="file"
+          accept="application/json,.json"
+          onChange={handleFileSelected}
+          className="sr-only"
+        />
+      </label>
+      {pending ? (
+        <ConfirmDialog
+          title={pending.title}
+          description={pending.description}
+          confirmLabel={pending.confirmLabel}
+          onConfirm={respondConfirm}
+          onCancel={respondCancel}
+        />
+      ) : null}
     </div>
   );
 }
