@@ -1,8 +1,10 @@
-import type { Card, Column, PersistedState } from '../types/board';
+import type { Board, Card, Column, PersistedState } from '../types/board';
 
 export type BoardAction =
   | { type: 'REPLACE_STATE'; state: PersistedState }
   | { type: 'RESET_STATE' }
+  | { type: 'ADD_BOARD'; board: Board }
+  | { type: 'SWITCH_BOARD'; boardId: string }
   | { type: 'ADD_CARD'; boardId: string; columnId: string; card: Card }
   | {
       type: 'UPDATE_CARD';

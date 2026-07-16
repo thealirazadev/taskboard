@@ -39,6 +39,88 @@ describe('boardReducer', () => {
     expect(nextState).not.toBe(previousState);
   });
 
+  function createBoard(id: string, title: string) {
+    return {
+      id,
+      title,
+      columnOrder: [],
+      columns: {},
+      cards: {},
+      createdAt: 1,
+      updatedAt: 1,
+    };
+  }
+
+  it('adds a board and makes it active', () => {
+    const state = createEmptyState();
+
+    const nextState = boardReducer(state, {
+      type: 'ADD_BOARD',
+      board: createBoard('board-1', 'Personal'),
+    });
+
+    expect(nextState.boardOrder).toEqual(['board-1']);
+    expect(nextState.boards['board-1']?.title).toBe('Personal');
+    expect(nextState.activeBoardId).toBe('board-1');
+    expect(state.boardOrder).toEqual([]);
+  });
+
+  it('adds a second board without affecting the first board', () => {
+    const state = boardReducer(createEmptyState(), {
+      type: 'ADD_BOARD',
+      board: createBoard('board-1', 'Personal'),
+    });
+
+    const nextState = boardReducer(state, {
+      type: 'ADD_BOARD',
+      board: createBoard('board-2', 'Work'),
+    });
+
+    expect(nextState.boardOrder).toEqual(['board-1', 'board-2']);
+    expect(nextState.boards['board-1']).toBe(state.boards['board-1']);
+    expect(nextState.activeBoardId).toBe('board-2');
+  });
+
+  it('ignores adding a board with a blank title', () => {
+    const state = createEmptyState();
+
+    expect(
+      boardReducer(state, {
+        type: 'ADD_BOARD',
+        board: createBoard('board-1', '   '),
+      }),
+    ).toBe(state);
+  });
+
+  it('switches the active board', () => {
+    let state = boardReducer(createEmptyState(), {
+      type: 'ADD_BOARD',
+      board: createBoard('board-1', 'Personal'),
+    });
+    state = boardReducer(state, {
+      type: 'ADD_BOARD',
+      board: createBoard('board-2', 'Work'),
+    });
+
+    const nextState = boardReducer(state, {
+      type: 'SWITCH_BOARD',
+      boardId: 'board-1',
+    });
+
+    expect(nextState.activeBoardId).toBe('board-1');
+  });
+
+  it('ignores switching to a board that does not exist', () => {
+    const state = boardReducer(createEmptyState(), {
+      type: 'ADD_BOARD',
+      board: createBoard('board-1', 'Personal'),
+    });
+
+    expect(
+      boardReducer(state, { type: 'SWITCH_BOARD', boardId: 'missing' }),
+    ).toBe(state);
+  });
+
   it('adds a validated card to the end of a column', () => {
     const previousState: PersistedState = {
       version: 1,

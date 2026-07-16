@@ -21,6 +21,31 @@ export function boardReducer(
       return action.state;
     case 'RESET_STATE':
       return createEmptyState();
+    case 'ADD_BOARD': {
+      if (
+        state.boards[action.board.id] ||
+        action.board.title.trim().length === 0
+      ) {
+        return state;
+      }
+
+      return {
+        ...state,
+        boardOrder: [...state.boardOrder, action.board.id],
+        boards: { ...state.boards, [action.board.id]: action.board },
+        activeBoardId: action.board.id,
+      };
+    }
+    case 'SWITCH_BOARD': {
+      if (
+        !state.boards[action.boardId] ||
+        state.activeBoardId === action.boardId
+      ) {
+        return state;
+      }
+
+      return { ...state, activeBoardId: action.boardId };
+    }
     case 'ADD_CARD': {
       const board = state.boards[action.boardId];
       const column = board?.columns[action.columnId];

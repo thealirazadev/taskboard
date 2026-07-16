@@ -431,6 +431,51 @@ describe('App', () => {
     expect(readStorage(BOARD_STORAGE_KEY)).toEqual({ ok: true, value: null });
   });
 
+  it('creates a second board without affecting the first board data', async () => {
+    const user = userEvent.setup();
+    persistState(createSavedStateWithCard());
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'New board' }));
+    await user.type(
+      screen.getByRole('textbox', { name: 'Board name' }),
+      'Work',
+    );
+    await user.click(screen.getByRole('button', { name: 'Create board' }));
+
+    expect(screen.getByRole('heading', { name: 'Work' })).toBeInTheDocument();
+    expect(
+      screen.getByText('This board has no columns'),
+    ).toBeInTheDocument();
+
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Switch board' }),
+      'Personal tasks',
+    );
+
+    expect(
+      screen.getByRole('heading', { name: 'Personal tasks' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Initial task' }),
+    ).toBeInTheDocument();
+  });
+
+  it('blocks a whitespace-only board name when creating a board', async () => {
+    const user = userEvent.setup();
+    persistState(createSavedState());
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'New board' }));
+    await user.type(
+      screen.getByRole('textbox', { name: 'Board name' }),
+      '   ',
+    );
+    await user.keyboard('{Enter}');
+
+    expect(screen.getByText('Enter a title.')).toBeInTheDocument();
+  });
+
   it('continues in memory when local storage is unavailable', () => {
     const storageDescriptor = Object.getOwnPropertyDescriptor(
       window,
