@@ -119,6 +119,16 @@ describe('validatePersistedState', () => {
     expectInvalid(orphanState);
   });
 
+  it('rejects ids that only exist on the object prototype', () => {
+    const cardState = createValidState();
+    cardState.boards['board-1']!.columns['column-1']!.cardIds = ['toString'];
+    expectInvalid(cardState);
+
+    const activeState = createValidState();
+    activeState.activeBoardId = 'constructor';
+    expectInvalid(activeState);
+  });
+
   it('rejects invalid card fields and timestamps', () => {
     const blankTitleState = createValidState();
     blankTitleState.boards['board-1']!.cards['card-1']!.title = '   ';

@@ -37,12 +37,18 @@ function readIdArray(
   return { ok: true, value };
 }
 
+function hasOwnId(record: Record<string, unknown>, id: string): boolean {
+  return Object.prototype.hasOwnProperty.call(record, id);
+}
+
 function hasExactIds(
   order: string[],
   record: Record<string, unknown>,
 ): boolean {
   const keys = Object.keys(record);
-  return order.length === keys.length && order.every((id) => id in record);
+  return (
+    order.length === keys.length && order.every((id) => hasOwnId(record, id))
+  );
 }
 
 function validateCard(
@@ -150,7 +156,7 @@ function validateBoard(
     }
 
     for (const cardId of columnResult.value) {
-      if (!(cardId in value.cards)) {
+      if (!hasOwnId(value.cards, cardId)) {
         return invalid(
           `Column ${columnId} references a card that does not exist.`,
         );
@@ -212,7 +218,8 @@ export function validatePersistedState(
 
   if (
     boardOrderResult.value.length > 0 &&
-    (value.activeBoardId === null || !(value.activeBoardId in value.boards))
+    (value.activeBoardId === null ||
+      !hasOwnId(value.boards, value.activeBoardId))
   ) {
     return invalid('activeBoardId must reference a saved board.');
   }
