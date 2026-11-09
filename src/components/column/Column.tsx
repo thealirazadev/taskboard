@@ -13,6 +13,8 @@ interface ColumnProps {
   boardId: string;
   column: ColumnData;
   cards: CardData[];
+  /** A filter hides some cards; positions would be wrong, so sorting is paused. */
+  filtering?: boolean;
 }
 
 /** Empty columns have no sortable card to register as a drop target, so this
@@ -35,7 +37,12 @@ function EmptyColumnDropTarget({ columnId }: { columnId: string }) {
   );
 }
 
-export function Column({ boardId, column, cards }: ColumnProps) {
+export function Column({
+  boardId,
+  column,
+  cards,
+  filtering = false,
+}: ColumnProps) {
   const headingId = `column-${column.id}-heading`;
 
   return (
@@ -53,9 +60,14 @@ export function Column({ boardId, column, cards }: ColumnProps) {
       <SortableContext
         items={cards.map((card) => card.id)}
         strategy={verticalListSortingStrategy}
+        disabled={filtering}
       >
         <ul aria-label={`${column.title} cards`} className="space-y-2">
-          {cards.length === 0 ? (
+          {cards.length === 0 && filtering ? (
+            <li className="px-3 py-6 text-center text-sm text-muted">
+              No matching cards.
+            </li>
+          ) : cards.length === 0 ? (
             <EmptyColumnDropTarget columnId={column.id} />
           ) : (
             cards.map((card) => (
