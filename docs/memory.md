@@ -27,3 +27,11 @@ A running log of what is done, what is in progress, and why key decisions were m
 - 2026-07-15: Ids use `crypto.randomUUID()` and timestamps use `Date.now()`; no id or date dependency added.
 - 2026-07-15: Drag-and-drop uses dnd-kit specifically for its accessible keyboard sensor and live-region announcements, which the full-keyboard-drag requirement needs.
 - 2026-07-15: No `.env` and no environment variables; the app has no secrets or per-environment config.
+
+- 2026-11-09: Browser check of the built app found that a new board was created with no columns,
+  although the PRD requires To Do, In Progress, and Done; the App test asserted the empty
+  board, so it hid the defect. Fixed in BoardSwitcher, and the test now asserts the three
+  columns in order. Added a card filter (title or description, case-insensitive) with a live
+  match count; sorting is disabled while filtering because drop indices are computed from the
+  visible list. Not a PRD non-goal (labels, due dates, checklists stay out); logged here as a
+  small scope addition.

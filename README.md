@@ -7,6 +7,8 @@ taskboard is a local-first Kanban board web app that runs entirely in the browse
 - Multiple boards, each with its own columns and cards
 - Editable columns; defaults are To Do, In Progress, Done
 - Add, edit, and delete cards with a title and an optional description
+- Filter cards by title or description across the board (dragging pauses while a filter is on,
+  so positions stay correct)
 - Drag cards between columns and reorder within a column
 - Full keyboard operation, including keyboard-driven drag-and-drop
 - Light and dark theme that follows the system preference and can be toggled
