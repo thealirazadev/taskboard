@@ -7,6 +7,8 @@ import { logger } from '../../lib/logger';
 import { validateTitle } from '../../lib/validation';
 import { selectBoards } from '../../state/selectors';
 
+const DEFAULT_COLUMN_TITLES = ['To Do', 'In Progress', 'Done'] as const;
+
 const TITLE_ERROR_ID = 'new-board-title-error';
 
 export function BoardSwitcher() {
@@ -34,23 +36,32 @@ export function BoardSwitcher() {
       return;
     }
 
-    const idResult = createId();
-    if (!idResult.ok) {
-      logger.error('A board id could not be created.', {
-        error: idResult.error,
-      });
+    // A new board starts with To Do, In Progress, and Done, in that order (PRD).
+    const ids = [createId(), createId(), createId(), createId()];
+    const failed = ids.find((result) => !result.ok);
+    if (failed && !failed.ok) {
+      logger.error('A board id could not be created.', { error: failed.error });
       showError('The board could not be created. Please try again.');
       return;
     }
+    const values = ids.map((result) => (result.ok ? result.value : ''));
+    const boardId = values[0] ?? '';
+    const columnIds = values.slice(1);
+    const columns = Object.fromEntries(
+      DEFAULT_COLUMN_TITLES.map((title, index) => {
+        const id = columnIds[index] ?? '';
+        return [id, { id, title, cardIds: [] }];
+      }),
+    );
 
     const now = Date.now();
     dispatch({
       type: 'ADD_BOARD',
       board: {
-        id: idResult.value,
+        id: boardId,
         title: titleResult.value,
-        columnOrder: [],
-        columns: {},
+        columnOrder: columnIds,
+        columns,
         cards: {},
         createdAt: now,
         updatedAt: now,

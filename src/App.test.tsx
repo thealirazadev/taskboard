@@ -448,7 +448,12 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Create board' }));
 
     expect(screen.getByRole('heading', { name: 'Work' })).toBeInTheDocument();
-    expect(screen.getByText('This board has no columns')).toBeInTheDocument();
+    // PRD: a new board starts with exactly To Do, In Progress, and Done, in order.
+    expect(
+      screen
+        .getAllByRole('heading', { level: 3 })
+        .map((heading) => heading.textContent),
+    ).toEqual(['To Do', 'In Progress', 'Done']);
 
     await user.selectOptions(
       screen.getByRole('combobox', { name: 'Switch board' }),
