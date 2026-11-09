@@ -621,4 +621,43 @@ describe('App', () => {
       }
     }
   });
+
+  it('filters cards by title or description and pauses dragging meanwhile', async () => {
+    const user = userEvent.setup();
+    const state = createSavedStateWithCard();
+    const board = state.boards['board-personal']!;
+    board.columns['column-todo']!.cardIds.push('card-other');
+    board.cards['card-other'] = {
+      id: 'card-other',
+      title: 'Write release notes',
+      description: 'Mention the export fix',
+      createdAt: 2,
+      updatedAt: 2,
+    };
+    persistState(state);
+    render(<App />);
+
+    const filter = screen.getByRole('searchbox', { name: 'Filter cards' });
+    await user.type(filter, 'EXPORT');
+
+    expect(
+      screen.getByRole('heading', { name: 'Write release notes' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: 'Initial task' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/1 matching card\. Dragging is paused/),
+    ).toBeInTheDocument();
+
+    await user.clear(filter);
+    await user.type(filter, 'nothing like this');
+    expect(screen.getAllByText('No matching cards.').length).toBeGreaterThan(0);
+
+    await user.clear(filter);
+    expect(
+      screen.getByRole('heading', { name: 'Initial task' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Dragging is paused/)).not.toBeInTheDocument();
+  });
 });
