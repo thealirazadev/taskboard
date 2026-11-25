@@ -101,7 +101,7 @@ Folders may collapse if a project stays small (for example, `common/` components
 - **dnd-kit** (`@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`). Chosen over alternatives because it ships an accessible keyboard sensor and live-region announcements out of the box, which is required for the full-keyboard-drag success criterion. It is unopinionated about styling and integrates with a reducer cleanly through its `onDragEnd` event.
 - **localStorage for persistence.** See the persistence section below for why this is chosen over IndexedDB.
 - **Vitest + React Testing Library.** Vitest shares Vite's config and transform pipeline, so tests run with no separate build setup. React Testing Library encourages testing user-visible behavior, which matches the acceptance criteria.
-- **ESLint + Prettier.** Enforce the naming and style conventions in `rules.md`.
+- **ESLint + Prettier.** Enforce naming, type-import, and no-console rules; Prettier owns formatting.
 
 ## Data model
 
@@ -148,7 +148,7 @@ Notes on the model:
 
 ## Persistence
 
-- **Chosen store: localStorage.** Rationale: the entire board tree for a personal tool is small (kilobytes to low megabytes), the data is a single JSON document that is read once on load and written on change, and localStorage's synchronous, simple API keeps the storage layer tiny. IndexedDB would add asynchronous complexity and a dependency (`idb`) with no benefit at this data size. This decision is recorded in `docs/memory.md`; if a future phase needs larger data or partial writes, migrating to IndexedDB via `idb` is the documented fallback.
+- **Chosen store: localStorage.** Rationale: the entire board tree for a personal tool is small (kilobytes to low megabytes), the data is a single JSON document that is read once on load and written on change, and localStorage's synchronous, simple API keeps the storage layer tiny. IndexedDB would add asynchronous complexity and a dependency (`idb`) with no benefit at this data size. If the data ever needs to grow well beyond that or support partial writes, IndexedDB is the fallback. See `docs/decisions.md` for this and the other design decisions.
 - **Key:** a single versioned key, `taskboard:v1`, holds the serialized `PersistedState`. The theme choice is stored separately under `taskboard:theme`.
 - **Serialization:** `JSON.stringify(persistedState)` on write, `JSON.parse` on read, both wrapped in try/catch in `storage/persistence.ts`.
 - **Versioning and migration:** the stored `version` field is compared against the current schema version. If lower, `storage/migrations.ts` runs ordered migration functions to bring it forward. If the payload is unparseable or fails schema validation, the app does not crash; it surfaces a friendly message and offers to start fresh (resetting the key) so a corrupt value cannot brick the app.
@@ -170,7 +170,7 @@ Build and dev:
 - `vitest`, `@testing-library/react`, `@testing-library/user-event`, `@testing-library/jest-dom`, `jsdom`
 - `eslint`, `prettier`, and their configs
 
-Ids use the built-in `crypto.randomUUID()`; no id library is added. Exact versions are pinned in `package.json` and locked in `package-lock.json` (see `rules.md`).
+Ids use the built-in `crypto.randomUUID()`; no id library is added. Exact versions are pinned in `package.json` (no `^` or `~`) and locked in `package-lock.json`.
 
 ## Environment variables
 

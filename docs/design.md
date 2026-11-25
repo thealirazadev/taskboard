@@ -126,7 +126,7 @@ Every interactive component defines these states. Focus is always a visible ring
 - Active (grabbed): pressed state indicating it can be moved.
 - Dragging: raised with `shadow-lg`, slight rotation or scale, semi-opaque placeholder left in the source position; a drag overlay follows the pointer/keyboard.
 - Error: if a card fails to save, mark it with a `--color-danger` left border and a small inline notice.
-- Loading: not applicable to individual cards (storage is synchronous); use skeleton only if a future async phase requires it.
+- Loading: not applicable to individual cards (storage is synchronous); use a skeleton only if storage ever becomes asynchronous.
 - Empty: not applicable to a card; see column empty state.
 
 ### Column

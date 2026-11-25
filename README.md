@@ -87,14 +87,14 @@ The build and the test suite must both pass before any feature is considered don
 
 ```
 taskboard/
-  docs/            Planning and handoff documentation
+  docs/            Architecture, design, testing, and design decisions
   public/          Static assets
   src/
     components/    Presentational and container React components
     hooks/         Reusable hooks (state, persistence, theme)
     state/         Board state reducer and context
     storage/       localStorage read/write and schema versioning
-    lib/           Small pure helpers (ids, validation, sanitize)
+    lib/           Small pure helpers (ids, validation, reorder, logger)
     types/         Shared TypeScript types (Board, Column, Card)
     App.tsx        Application shell
     main.tsx       Entry point
@@ -102,7 +102,8 @@ taskboard/
   package.json
 ```
 
-See `docs/architecture.md` for the full breakdown.
+See `docs/architecture.md` for the full breakdown and `docs/decisions.md` for the main design
+decisions and the reasoning behind them.
 
 ## License
 
