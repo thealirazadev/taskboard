@@ -36,7 +36,8 @@ export function BoardSwitcher() {
       return;
     }
 
-    // A new board starts with To Do, In Progress, and Done, in that order (PRD).
+    // A new board starts with To Do, In Progress, and Done, in that order,
+    // so it is usable without first adding columns.
     const ids = [createId(), createId(), createId(), createId()];
     const failed = ids.find((result) => !result.ok);
     if (failed && !failed.ok) {

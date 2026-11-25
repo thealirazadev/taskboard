@@ -448,7 +448,7 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Create board' }));
 
     expect(screen.getByRole('heading', { name: 'Work' })).toBeInTheDocument();
-    // PRD: a new board starts with exactly To Do, In Progress, and Done, in order.
+    // A new board starts with exactly To Do, In Progress, and Done, in order.
     expect(
       screen
         .getAllByRole('heading', { level: 3 })
