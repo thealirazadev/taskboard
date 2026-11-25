@@ -15,6 +15,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+// Ids come from untrusted JSON, so check own keys only: `in` would accept
+// inherited names such as "toString" or "constructor" as saved entities.
+function hasOwnKey(record: Record<string, unknown>, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(record, key);
+}
+
 function isTimestamp(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0;
 }
@@ -42,7 +48,9 @@ function hasExactIds(
   record: Record<string, unknown>,
 ): boolean {
   const keys = Object.keys(record);
-  return order.length === keys.length && order.every((id) => id in record);
+  return (
+    order.length === keys.length && order.every((id) => hasOwnKey(record, id))
+  );
 }
 
 function validateCard(
@@ -150,7 +158,7 @@ function validateBoard(
     }
 
     for (const cardId of columnResult.value) {
-      if (!(cardId in value.cards)) {
+      if (!hasOwnKey(value.cards, cardId)) {
         return invalid(
           `Column ${columnId} references a card that does not exist.`,
         );
@@ -212,7 +220,8 @@ export function validatePersistedState(
 
   if (
     boardOrderResult.value.length > 0 &&
-    (value.activeBoardId === null || !(value.activeBoardId in value.boards))
+    (value.activeBoardId === null ||
+      !hasOwnKey(value.boards, value.activeBoardId))
   ) {
     return invalid('activeBoardId must reference a saved board.');
   }

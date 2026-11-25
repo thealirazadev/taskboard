@@ -119,6 +119,26 @@ describe('validatePersistedState', () => {
     expectInvalid(orphanState);
   });
 
+  it('rejects ids that only resolve through the object prototype', () => {
+    const columnOrderState = createValidState();
+    columnOrderState.boards['board-1']!.columnOrder = ['toString'];
+    expectInvalid(columnOrderState);
+
+    const cardRefState = createValidState();
+    cardRefState.boards['board-1']!.columns['column-1']!.cardIds = [
+      'constructor',
+    ];
+    expectInvalid(cardRefState);
+
+    const activeBoardState = createValidState();
+    activeBoardState.activeBoardId = 'hasOwnProperty';
+    expectInvalid(activeBoardState);
+
+    const boardOrderState = createValidState();
+    boardOrderState.boardOrder = ['valueOf'];
+    expectInvalid(boardOrderState);
+  });
+
   it('rejects invalid card fields and timestamps', () => {
     const blankTitleState = createValidState();
     blankTitleState.boards['board-1']!.cards['card-1']!.title = '   ';
