@@ -16,7 +16,7 @@ taskboard is a single-page React application with no backend. All state lives in
 
 State is never fetched from or written to a network. There are no loading spinners for data other than the very brief synchronous read on first paint.
 
-## Proposed folder and file tree
+## Folder and file tree
 
 ```
 taskboard/
@@ -25,34 +25,33 @@ taskboard/
   package-lock.json
   tsconfig.json
   vite.config.ts
-  vitest.config.ts             (may be merged into vite.config.ts)
+  vitest.config.ts
   tailwind.config.ts
   postcss.config.js
   .eslintrc.cjs
   .prettierrc
-  public/
-    favicon.svg
   src/
     main.tsx                   Entry point; mounts App
-    App.tsx                    Shell: header, board switcher, theme toggle, board view
+    App.tsx                    Wraps AppShell in BoardProvider
     index.css                  Tailwind directives and base styles
+    vite-env.d.ts
 
     components/
+      AppShell.tsx             Page shell: header, board switcher, import/export, theme toggle, board view
       board/
-        BoardView.tsx          Renders the active board and its DndContext
+        BoardView.tsx          Renders the active board's columns and filter
+        BoardDndContext.tsx    dnd-kit DndContext, sensors, drag overlay, announcements
         BoardSwitcher.tsx      Select or create boards
-        BoardHeader.tsx        Board title, add-column, import/export, theme toggle
+        BoardHeader.tsx        Board title and add-column form
+        DataTransfer.tsx       JSON export and validated import
       column/
         Column.tsx             One column: header, card list, add-card control
         ColumnHeader.tsx       Editable column title, delete column
         AddCardForm.tsx        Inline form to add a card
       card/
         Card.tsx               Sortable card (title, description preview)
-        CardEditor.tsx         Modal or inline editor for title and description
+        CardEditor.tsx         Modal editor for title and description
       common/
-        Button.tsx             Styled button with variants and states
-        TextField.tsx          Labeled input with validation slot
-        TextArea.tsx           Labeled multiline input
         Modal.tsx              Accessible dialog wrapper (focus trap, Esc to close)
         ConfirmDialog.tsx      Confirmation prompt for destructive actions
         EmptyState.tsx         Reusable empty-state block
@@ -72,26 +71,29 @@ taskboard/
       selectors.ts             Derived reads (active board, column by id, etc.)
 
     storage/
+      constants.ts             Storage keys and current schema version
       localStorageDriver.ts    Guarded getItem/setItem/removeItem wrappers
-      persistence.ts           Serialize, deserialize, key name, versioning
+      persistence.ts           Serialize, deserialize, versioning
       migrations.ts            Version-to-version migration functions
       schema.ts                Runtime validation for loaded/imported data
 
     lib/
       id.ts                    createId() wrapper over crypto.randomUUID
-      sanitize.ts              Escape user text rendered as HTML if needed
       reorder.ts               Pure array move/insert helpers for drag
       validation.ts            Title validation, import validation
       logger.ts                Dev-only structured logging
 
     types/
       board.ts                 Board, Column, Card, and PersistedState types
+      result.ts                Result<T, E> type used by validation and storage
 
     test/
       setup.ts                 Testing Library and jest-dom setup
 ```
 
-Folders may collapse if a project stays small (for example, `common/` components can live flat), but the separation between `components`, `hooks`, `state`, `storage`, `lib`, and `types` should be preserved.
+Unit tests sit next to the module they cover as `*.test.ts` (for example `src/state/boardReducer.test.ts`), with `src/App.test.tsx` covering the rendered app.
+
+There is no HTML sanitizer: React escapes all user text when it renders it, and no component uses `dangerouslySetInnerHTML`. Buttons and inputs are plain elements styled with Tailwind classes rather than shared wrapper components.
 
 ## Tech stack with rationale
 
